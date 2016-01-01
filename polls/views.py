@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
@@ -7,15 +8,21 @@ class IndexView(generic.ListView):
   template_name = 'polls/index.html'
   context_object_name = 'latest_question_list'
   def get_queryset(self):
-    return Question.objects.order_by('-pub_date')[:5]
+    return Question.objects.filter(
+    pub_date__lte=timezone.now()
+    ).order_by('-pub_date')[:5]
+
 
 class DetailView(generic.DetailView):
   model = Question
   template_name = 'polls/detail.html'
+  def get_queryset(self):
+        # questions in the future should not be accessible to the public
+    return Question.objects.filter(pub_date__lte=timezone.now())
 
 class ResultsView(generic.DetailView):
   model = Question
-  templae_name = 'polls/results.html'
+  template_name = 'polls/results.html'
 
   
 def vote(request, question_id):
